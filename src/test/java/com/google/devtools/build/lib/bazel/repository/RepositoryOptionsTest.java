@@ -23,6 +23,8 @@ import com.google.devtools.build.lib.bazel.repository.RepositoryOptions.Reposito
 import com.google.devtools.build.lib.bazel.repository.RepositoryOptions.RepositoryOverrideConverter;
 import com.google.devtools.build.lib.cmdline.RepositoryName;
 import com.google.devtools.build.lib.vfs.PathFragment;
+import com.google.devtools.build.lib.vfs.Root;
+import com.google.devtools.build.lib.vfs.RootedPath;
 import com.google.devtools.common.options.OptionsParsingException;
 import org.junit.Rule;
 import org.junit.Test;
@@ -66,8 +68,19 @@ public class RepositoryOptionsTest {
   public void testModuleOverridePathWithTilde() throws Exception {
     var converter = new ModuleOverrideConverter();
     ModuleOverride actual = converter.convert("foo=~/bar");
-    assertThat(PathFragment.create(actual.path()))
+    assertThat(PathFragment.create(actual.path().getPathString()))
         .isEqualTo(PathFragment.create(USER_HOME.value() + "/bar"));
+  }
+
+  @Test
+  public void testModuleOverrideRelativePath() throws Exception {
+    var converter = new ModuleOverrideConverter();
+    ModuleOverride actual = converter.convert("foo=./bar");
+    assertThat(PathFragment.create(actual.path().getPathString()))
+        .isEqualTo(PathFragment.create("bar"));
+    actual = converter.convert("foo=../../bar");
+    assertThat(PathFragment.create(actual.path().getPathString()))
+        .isEqualTo(PathFragment.create("../../bar"));
   }
 
   @Test

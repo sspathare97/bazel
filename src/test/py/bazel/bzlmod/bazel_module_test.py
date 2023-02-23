@@ -390,6 +390,8 @@ class BazelModuleTest(test_base.TestBase):
         ]))
 
   def testCommandLineModuleOverride(self):
+    # test absolute path
+    # test commandline_overrides takes precedence over local_path_override
     self.ScratchFile('MODULE.bazel', [
         'bazel_dep(name = "ss", version = "1.0")',
         'local_path_override(',
@@ -417,13 +419,34 @@ class BazelModuleTest(test_base.TestBase):
     self.ScratchFile('bb/WORKSPACE')
 
     _, _, stderr = self.RunBazel([
-        'build', '--experimental_enable_bzlmod', '@ss//:all',
-        '--override_module', 'ss=' + self.Path('bb')
+        'build', '@ss//:all', '--override_module', 'ss=' + self.Path('bb')
     ],
                                  allow_failure=False)
     # module file override should be ignored, and bb directory should be used
     self.assertIn(
         'Target @ss~override//:choose_me up-to-date (nothing to build)', stderr)
+
+  def testCommandLineRelativeModuleOverride(self):
+    self.ScratchFile('aa/MODULE.bazel', [
+      'bazel_dep(name = "ss", version = "1.0")',
+      ])
+    self.ScratchFile('aa/BUILD')
+    self.ScratchFile('aa/WORKSPACE')
+
+    self.ScratchFile('bb/MODULE.bazel', [
+      'module(name="ss")',
+    ])
+    self.ScratchFile('bb/BUILD', [
+      'filegroup(name = "choose_me")',
+    ])
+    self.ScratchFile('bb/WORKSPACE')
+
+    _, _, stderr = self.RunBazel([
+      'build', '@ss//:all', '--override_module', 'ss=' + self.Path('bb')
+    ], cwd='aa', allow_failure=False)
+    # module file override should be ignored, and bb directory should be used
+    self.assertIn(
+      'Target @ss~override//:choose_me up-to-date (nothing to build)', stderr)
 
   def testDownload(self):
     data_path = self.ScratchFile('data.txt', ['some data'])
