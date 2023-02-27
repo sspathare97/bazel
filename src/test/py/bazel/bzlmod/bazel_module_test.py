@@ -442,9 +442,9 @@ class BazelModuleTest(test_base.TestBase):
     self.ScratchFile('bb/WORKSPACE')
 
     _, _, stderr = self.RunBazel([
-      'build', '@ss//:all', '--override_module', 'ss=' + self.Path('bb')
-    ], cwd='aa', allow_failure=False)
-    # module file override should be ignored, and bb directory should be used
+      'build', '@ss//:all', '--override_module', 'ss=../bb', '--enable_bzlmod',
+      '--registry=https://bcr.bazel.build',
+    ], cwd=self.Path('aa'), allow_failure=False)
     self.assertIn(
       'Target @ss~override//:choose_me up-to-date (nothing to build)', stderr)
 
