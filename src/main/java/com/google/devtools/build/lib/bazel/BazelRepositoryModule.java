@@ -405,15 +405,13 @@ public class BazelRepositoryModule extends BlazeModule {
       }
 
       if (repoOptions.moduleOverrides != null) {
-        Map<String, ModuleOverride> moduleOverrideMap = new LinkedHashMap<>();
+        ImmutableMap.Builder<String, ModuleOverride> moduleOverrideMap = ImmutableMap.builder();
         for (RepositoryOptions.ModuleOverride modOverride : repoOptions.moduleOverrides) {
           moduleOverrideMap.put(
               modOverride.moduleName(), LocalPathOverride.create(modOverride.path()));
         }
-        ImmutableMap<String, ModuleOverride> newModOverrides =
-            ImmutableMap.copyOf(moduleOverrideMap);
-        if (!Maps.difference(moduleOverrides, newModOverrides).areEqual()) {
-          moduleOverrides = newModOverrides;
+        if (!Maps.difference(moduleOverrides, moduleOverrideMap.build()).areEqual()) {
+          moduleOverrides = moduleOverrideMap.buildOrThrow();
         }
       } else {
         moduleOverrides = ImmutableMap.of();

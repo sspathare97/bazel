@@ -71,6 +71,15 @@ public class RepositoryOptionsTest {
   }
 
   @Test
+  public void testModuleOverrideRelativePath() throws Exception {
+    var converter = new ModuleOverrideConverter();
+    ModuleOverride actual = converter.convert("foo=./bar");
+    assertThat(PathFragment.create(actual.path())).isEqualTo(PathFragment.create("bar"));
+    actual = converter.convert("foo=../../bar");
+    assertThat(PathFragment.create(actual.path())).isEqualTo(PathFragment.create("../../bar"));
+  }
+
+  @Test
   public void testInvalidOverride() throws Exception {
     expectedException.expect(OptionsParsingException.class);
     expectedException.expectMessage(

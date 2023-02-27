@@ -367,15 +367,8 @@ public class RepositoryOptions extends OptionsBase {
                 pieces[0]));
       }
 
-      OptionsUtils.AbsolutePathFragmentConverter absolutePathFragmentConverter =
-          new OptionsUtils.AbsolutePathFragmentConverter();
-      try {
-        var path = absolutePathFragmentConverter.convert(pieces[1]);
-        return ModuleOverride.create(pieces[0], path.toString());
-      } catch (OptionsParsingException e) {
-        throw new OptionsParsingException(
-            "Module override directory must be an absolute path", input, e);
-      }
+      OptionsUtils.PathFragmentConverter pathConverter = new OptionsUtils.PathFragmentConverter();
+      return ModuleOverride.create(pieces[0], pathConverter.convert(pieces[1]).getPathString());
     }
 
     @Override
