@@ -78,7 +78,7 @@ list_source_repository(name = "local_bazel_source_list")
 # android_sdk_repository(name = "androidsdk")
 # android_ndk_repository(name = "androidndk")
 
-# In order to run //src/test/shell/bazel:maven_skylark_test, follow the
+# In order to run //src/test/shell/bazel:maven_starlark_test, follow the
 # instructions above for the Android integration tests and uncomment the
 # following lines:
 # load("//tools/build_defs/repo:maven_rules.bzl", "maven_dependency_plugin")
@@ -403,8 +403,8 @@ dist_http_archive(
         patch_cmds = EXPORT_WORKSPACE_IN_BUILD_BAZEL_FILE,
         patch_cmds_win = EXPORT_WORKSPACE_IN_BUILD_BAZEL_FILE_WIN,
     )
-    for version in ("17", "18")
-    for os in ("linux", "macos", "macos_aarch64", "win", "win_arm64")
+    for version in ("17", "19")
+    for os in ("linux", "macos", "macos_aarch64", "win") + (("win_arm64",) if version != "19" else ())
 ]
 
 # Used in src/main/java/com/google/devtools/build/lib/bazel/rules/java/jdk.WORKSPACE.
@@ -516,8 +516,8 @@ java_runtime(name = 'runtime', srcs =  glob(['**']), visibility = ['//visibility
 exports_files(["WORKSPACE"], visibility = ["//visibility:public"])
 """,
     )
-    for version in ("17", "18")
-    for os in ("linux", "darwin", "darwin_aarch64", "windows", "windows_arm64")
+    for version in ("17", "19")
+    for os in ("linux", "darwin", "darwin_aarch64", "windows") + (("windows_arm64",) if version != "19" else ())
 ]
 
 load("@io_bazel_skydoc//:setup.bzl", "stardoc_repositories")
@@ -608,6 +608,7 @@ load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
 rules_jvm_external_setup()
 
 load("@rules_jvm_external//:defs.bzl", "maven_install")
+load("@rules_jvm_external//:specs.bzl", "maven")
 
 maven_install(
     artifacts = [
@@ -626,11 +627,11 @@ maven_install(
         "com.google.code.findbugs:jsr305:3.0.2",
         "com.google.code.gson:gson:2.9.0",
         "com.google.code.java-allocation-instrumenter:java-allocation-instrumenter:3.3.0",
-        "com.google.errorprone:error_prone_annotation:2.16",
-        "com.google.errorprone:error_prone_annotations:2.16",
-        "com.google.errorprone:error_prone_check_api:2.16",
-        "com.google.errorprone:error_prone_core:2.16",
-        "com.google.errorprone:error_prone_type_annotations:2.16",
+        "com.google.errorprone:error_prone_annotation:2.18.0",
+        "com.google.errorprone:error_prone_annotations:2.18.0",
+        "com.google.errorprone:error_prone_check_api:2.18.0",
+        "com.google.errorprone:error_prone_core:2.18.0",
+        "com.google.errorprone:error_prone_type_annotations:2.18.0",
         "com.google.flogger:flogger-system-backend:0.5.1",
         "com.google.flogger:flogger:0.5.1",
         "com.google.flogger:google-extensions:0.5.1",
@@ -700,9 +701,7 @@ maven_install(
         "org.pcollections:pcollections:3.1.4",
         "org.threeten:threeten-extra:1.5.0",
         "org.tukaani:xz:1.9",
-        # TODO(pcloudy): specify guava-testlib as testonly after merging third_party changes.
-        "com.google.guava:guava-testlib:31.1-jre",
-        # maven.artifact("com.google.guava", "guava-testlib", "31.1-jre", testonly = True),
+        maven.artifact("com.google.guava", "guava-testlib", "31.1-jre", testonly = True),
     ],
     excluded_artifacts = [
         # org.apache.httpcomponents and org.eclipse.jgit:org.eclipse.jgit
