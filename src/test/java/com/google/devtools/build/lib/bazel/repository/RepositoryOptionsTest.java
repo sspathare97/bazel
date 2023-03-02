@@ -74,21 +74,11 @@ public class RepositoryOptionsTest {
   @Test
   public void testModuleOverrideRelativePath() throws Exception {
     var converter = new ModuleOverrideConverter();
-    ModuleOverride actual = converter.convert("foo=./bar");
-    assertThat(PathFragment.create(actual.path()))
-        .isEqualTo(PathFragment.create(USER_DIR.value() + "/bar"));
+    ModuleOverride actual = converter.convert("foo=%workspace%/bar");
+    assertThat(actual.path()).isEqualTo("%workspace%/bar");
     actual = converter.convert("foo=../../bar");
-    assertThat(PathFragment.create(actual.path()))
-        .isEqualTo(PathFragment.create(USER_DIR.value() + "../bar"));
+    assertThat(actual.path()).isEqualTo("../../bar");
   }
-
-  // @Test
-  // public void testModuleOverrideRelativePathWithWorkspace() throws Exception {
-  //   var converter = new ModuleOverrideConverter();
-  //   ModuleOverride actual = converter.convert("foo=%workspace%/bar");
-  //   assertThat(PathFragment.create(actual.path()))
-  //       .isEqualTo(PathFragment.create(directories.getworkspace() + "/bar"));
-  // }
 
   @Test
   public void testInvalidOverride() throws Exception {
@@ -105,10 +95,4 @@ public class RepositoryOptionsTest {
     converter.convert("foo/bar=/baz");
   }
 
-  @Test
-  public void testInvalidPathOverride() throws Exception {
-    expectedException.expect(OptionsParsingException.class);
-    expectedException.expectMessage("Repository override directory must be an absolute path");
-    converter.convert("foo=bar");
-  }
 }

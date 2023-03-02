@@ -427,8 +427,7 @@ class BazelModuleTest(test_base.TestBase):
         'Target @ss~override//:choose_me up-to-date (nothing to build)', stderr)
 
   def testCommandLineRelativeModuleOverride(self):
-    self.ScratchFile('WORKSPACE')
-
+    self.ScratchFile('aa/WORKSPACE')
     self.ScratchFile(
         'aa/MODULE.bazel',
         [
@@ -437,6 +436,7 @@ class BazelModuleTest(test_base.TestBase):
     )
     self.ScratchFile('aa/BUILD')
 
+    self.ScratchFile('bb/WORKSPACE')
     self.ScratchFile(
         'bb/MODULE.bazel',
         [
@@ -455,7 +455,7 @@ class BazelModuleTest(test_base.TestBase):
             'build',
             '@ss//:all',
             '--override_module',
-            'ss=%workspace%/bb',
+            'ss=../bb',
             '--enable_bzlmod',
             '--registry=https://bcr.bazel.build',
         ],
@@ -468,13 +468,13 @@ class BazelModuleTest(test_base.TestBase):
 
   def testCommandLineWorkspaceRelativeModuleOverride(self):
     self.ScratchFile(
-        'aa/MODULE.bazel',
+        'MODULE.bazel',
         [
             'bazel_dep(name = "ss", version = "1.0")',
         ],
     )
-    self.ScratchFile('aa/BUILD')
-    self.ScratchFile('aa/WORKSPACE')
+    self.ScratchFile('BUILD')
+    self.ScratchFile('WORKSPACE')
 
     self.ScratchFile(
         'bb/MODULE.bazel',
@@ -495,11 +495,8 @@ class BazelModuleTest(test_base.TestBase):
             'build',
             '@ss//:all',
             '--override_module',
-            'ss=../bb',
-            '--enable_bzlmod',
-            '--registry=https://bcr.bazel.build',
+            'ss=%workspace%/bb',
         ],
-        cwd=self.Path('aa'),
         allow_failure=False,
     )
     self.assertIn(
