@@ -394,7 +394,9 @@ public class BazelRepositoryModule extends BlazeModule {
         // We use a LinkedHashMap to preserve the iteration order.
         Map<RepositoryName, PathFragment> overrideMap = new LinkedHashMap<>();
         for (RepositoryOverride override : repoOptions.repositoryOverrides) {
-          overrideMap.put(override.repositoryName(), override.path());
+          String repoPath =
+              override.path().replace("%workspace%", env.getWorkspace().getPathString());
+          overrideMap.put(override.repositoryName(), PathFragment.create(repoPath));
         }
         ImmutableMap<RepositoryName, PathFragment> newOverrides = ImmutableMap.copyOf(overrideMap);
         if (!Maps.difference(overrides, newOverrides).areEqual()) {
@@ -405,13 +407,16 @@ public class BazelRepositoryModule extends BlazeModule {
       }
 
       if (repoOptions.moduleOverrides != null) {
-        ImmutableMap.Builder<String, ModuleOverride> moduleOverrideMap = ImmutableMap.builder();
-        for (RepositoryOptions.ModuleOverride modOverride : repoOptions.moduleOverrides) {
-          moduleOverrideMap.put(
-              modOverride.moduleName(), LocalPathOverride.create(modOverride.path()));
+        Map<String, ModuleOverride> moduleOverrideMap = new LinkedHashMap<>();
+        for (RepositoryOptions.ModuleOverride override : repoOptions.moduleOverrides) {
+          String modulePath =
+              override.path().replace("%workspace%", env.getWorkspace().getPathString());
+          moduleOverrideMap.put(override.moduleName(), LocalPathOverride.create(modulePath));
         }
-        if (!Maps.difference(moduleOverrides, moduleOverrideMap.build()).areEqual()) {
-          moduleOverrides = moduleOverrideMap.buildOrThrow();
+        ImmutableMap<String, ModuleOverride> newModOverrides =
+            ImmutableMap.copyOf(moduleOverrideMap);
+        if (!Maps.difference(moduleOverrides, newModOverrides).areEqual()) {
+          moduleOverrides = newModOverrides;
         }
       } else {
         moduleOverrides = ImmutableMap.of();

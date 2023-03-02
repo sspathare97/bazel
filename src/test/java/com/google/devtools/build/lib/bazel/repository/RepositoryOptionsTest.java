@@ -14,6 +14,7 @@
 
 package com.google.devtools.build.lib.bazel.repository;
 
+import static com.google.common.base.StandardSystemProperty.USER_DIR;
 import static com.google.common.base.StandardSystemProperty.USER_HOME;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -45,21 +46,21 @@ public class RepositoryOptionsTest {
   public void testOverrideConverter() throws Exception {
     RepositoryOverride actual = converter.convert("foo=/bar");
     assertThat(actual.repositoryName()).isEqualTo(RepositoryName.createUnvalidated("foo"));
-    assertThat(actual.path()).isEqualTo(PathFragment.create("/bar"));
+    assertThat(actual.path()).isEqualTo("/bar");
   }
 
   @Test
   public void testOverridePathWithEqualsSign() throws Exception {
     RepositoryOverride actual = converter.convert("foo=/bar=/baz");
     assertThat(actual.repositoryName()).isEqualTo(RepositoryName.createUnvalidated("foo"));
-    assertThat(actual.path()).isEqualTo(PathFragment.create("/bar=/baz"));
+    assertThat(actual.path()).isEqualTo("/bar=/baz");
   }
 
   @Test
   public void testOverridePathWithTilde() throws Exception {
     RepositoryOverride actual = converter.convert("foo=~/bar");
     assertThat(actual.repositoryName()).isEqualTo(RepositoryName.createUnvalidated("foo"));
-    assertThat(actual.path()).isEqualTo(PathFragment.create(USER_HOME.value() + "/bar"));
+    assertThat(actual.path()).isEqualTo(USER_HOME.value() + "/bar");
   }
 
   @Test
@@ -74,10 +75,20 @@ public class RepositoryOptionsTest {
   public void testModuleOverrideRelativePath() throws Exception {
     var converter = new ModuleOverrideConverter();
     ModuleOverride actual = converter.convert("foo=./bar");
-    assertThat(PathFragment.create(actual.path())).isEqualTo(PathFragment.create("bar"));
+    assertThat(PathFragment.create(actual.path()))
+        .isEqualTo(PathFragment.create(USER_DIR.value() + "/bar"));
     actual = converter.convert("foo=../../bar");
-    assertThat(PathFragment.create(actual.path())).isEqualTo(PathFragment.create("../../bar"));
+    assertThat(PathFragment.create(actual.path()))
+        .isEqualTo(PathFragment.create(USER_DIR.value() + "../bar"));
   }
+
+  // @Test
+  // public void testModuleOverrideRelativePathWithWorkspace() throws Exception {
+  //   var converter = new ModuleOverrideConverter();
+  //   ModuleOverride actual = converter.convert("foo=%workspace%/bar");
+  //   assertThat(PathFragment.create(actual.path()))
+  //       .isEqualTo(PathFragment.create(directories.getworkspace() + "/bar"));
+  // }
 
   @Test
   public void testInvalidOverride() throws Exception {

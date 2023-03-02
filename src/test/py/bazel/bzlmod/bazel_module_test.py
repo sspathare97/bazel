@@ -427,6 +427,46 @@ class BazelModuleTest(test_base.TestBase):
         'Target @ss~override//:choose_me up-to-date (nothing to build)', stderr)
 
   def testCommandLineRelativeModuleOverride(self):
+    self.ScratchFile('WORKSPACE')
+
+    self.ScratchFile(
+        'aa/MODULE.bazel',
+        [
+            'bazel_dep(name = "ss", version = "1.0")',
+        ],
+    )
+    self.ScratchFile('aa/BUILD')
+
+    self.ScratchFile(
+        'bb/MODULE.bazel',
+        [
+            'module(name="ss")',
+        ],
+    )
+    self.ScratchFile(
+        'bb/BUILD',
+        [
+            'filegroup(name = "choose_me")',
+        ],
+    )
+
+    _, _, stderr = self.RunBazel(
+        [
+            'build',
+            '@ss//:all',
+            '--override_module',
+            'ss=%workspace%/bb',
+            '--enable_bzlmod',
+            '--registry=https://bcr.bazel.build',
+        ],
+        cwd=self.Path('aa'),
+        allow_failure=False,
+    )
+    self.assertIn(
+        'Target @ss~override//:choose_me up-to-date (nothing to build)', stderr
+    )
+
+  def testCommandLineWorkspaceRelativeModuleOverride(self):
     self.ScratchFile(
         'aa/MODULE.bazel',
         [
